@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Play, Save, Loader2, CheckCircle2, AlertCircle, History } from 'lucide-react'
+import { Play, Save, Loader2, Clock, X } from 'lucide-react'
 import { useWorkflowStore } from '../store/workflowStore'
 import { createWorkflow, triggerRun } from '../api/client'
 
@@ -23,26 +23,20 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
 
   const handleSaveAndRun = async () => {
     if (nodes.length === 0) {
-      setErrorMsg('Add at least one node before running')
+      setErrorMsg('Add at least one node first')
       setRunState('error')
       setTimeout(() => setRunState('idle'), 3000)
       return
     }
-
     setRunState('saving')
     setErrorMsg('')
-
     try {
-      const payload = toBackendPayload()
-      const workflow = await createWorkflow(payload)
+      const workflow = await createWorkflow(toBackendPayload())
       setSavedWorkflowId(workflow.id)
-
       setRunState('triggering')
       const run = await triggerRun(workflow.id)
-
       setRunState('dispatched')
       onRunDispatched(run.run_id)
-
       setTimeout(() => setRunState('idle'), 2000)
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Unknown error')
@@ -55,8 +49,7 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
     if (nodes.length === 0) return
     setRunState('saving')
     try {
-      const payload = toBackendPayload()
-      const workflow = await createWorkflow(payload)
+      const workflow = await createWorkflow(toBackendPayload())
       setSavedWorkflowId(workflow.id)
       setRunState('dispatched')
       setTimeout(() => setRunState('idle'), 1500)
@@ -70,87 +63,167 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
   const isBusy = runState === 'saving' || runState === 'triggering'
 
   return (
-    <header className="flex h-12 flex-shrink-0 items-center gap-3 border-b border-white/5 bg-[#0d0e17] px-4">
-      <div className="flex items-center gap-2">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-purple-600">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <circle cx="2" cy="5" r="1.5" fill="white" />
-            <circle cx="8" cy="2" r="1.5" fill="white" />
-            <circle cx="8" cy="8" r="1.5" fill="white" />
-            <line x1="3.4" y1="4.3" x2="6.6" y2="2.7" stroke="white" strokeWidth="0.8" />
-            <line x1="3.4" y1="5.7" x2="6.6" y2="7.3" stroke="white" strokeWidth="0.8" />
+    <header
+      className="flex h-[52px] flex-shrink-0 items-center px-4 gap-3"
+      style={{
+        background: 'rgba(12,12,14,0.95)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        backdropFilter: 'blur(20px)',
+      }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 flex-shrink-0">
+        <div
+          className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px]"
+          style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)' }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <circle cx="2.5" cy="6" r="1.8" fill="white" fillOpacity="0.95" />
+            <circle cx="9.5" cy="2.5" r="1.8" fill="white" fillOpacity="0.95" />
+            <circle cx="9.5" cy="9.5" r="1.8" fill="white" fillOpacity="0.95" />
+            <line x1="4.2" y1="5.1" x2="7.8" y2="3.4" stroke="white" strokeWidth="0.9" strokeOpacity="0.7" />
+            <line x1="4.2" y1="6.9" x2="7.8" y2="8.6" stroke="white" strokeWidth="0.9" strokeOpacity="0.7" />
           </svg>
         </div>
-        <span className="text-[11px] font-bold uppercase tracking-widest text-white/40">
-          Orchestrator
+        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em' }}>
+          ORCHESTRATOR
         </span>
       </div>
 
-      <div className="mx-2 h-4 w-px bg-white/8" />
+      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
 
+      {/* Workflow name */}
       <input
         type="text"
         value={workflowName}
         onChange={(e) => setWorkflowName(e.target.value)}
-        className="w-52 rounded-lg border border-transparent bg-transparent px-2 py-1 text-sm font-medium text-white/80 outline-none transition hover:border-white/8 focus:border-white/15 focus:bg-white/5"
-        placeholder="Workflow name…"
+        placeholder="Untitled workflow"
+        style={{
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          color: 'rgba(255,255,255,0.82)',
+          fontSize: 14,
+          fontWeight: 450,
+          width: 200,
+          padding: '4px 6px',
+          borderRadius: 6,
+          transition: 'background 0.15s',
+        }}
+        onFocus={(e) => { e.target.style.background = 'rgba(255,255,255,0.05)' }}
+        onBlur={(e) => { e.target.style.background = 'transparent' }}
       />
 
+      {/* Right side */}
       <div className="ml-auto flex items-center gap-2">
+        {/* Status feedback */}
         {runState === 'error' && (
-          <div className="flex items-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/10 px-2.5 py-1">
-            <AlertCircle size={12} className="text-red-400" />
-            <span className="text-xs text-red-300">{errorMsg}</span>
+          <div
+            className="flex items-center gap-2 animate-in"
+            style={{
+              background: 'rgba(255,59,48,0.12)',
+              border: '1px solid rgba(255,59,48,0.2)',
+              borderRadius: 8,
+              padding: '5px 10px',
+            }}
+          >
+            <span style={{ fontSize: 12, color: 'rgba(255,100,90,0.95)' }}>{errorMsg}</span>
+            <button onClick={() => setRunState('idle')} style={{ color: 'rgba(255,100,90,0.6)', lineHeight: 0 }}>
+              <X size={11} />
+            </button>
           </div>
         )}
 
         {runState === 'dispatched' && (
-          <div className="flex items-center gap-1.5 rounded-lg border border-green-500/25 bg-green-500/10 px-2.5 py-1">
-            <CheckCircle2 size={12} className="text-green-400" />
-            <span className="text-xs text-green-300">Run dispatched</span>
+          <div
+            className="flex items-center gap-2 animate-in"
+            style={{
+              background: 'rgba(48,209,88,0.10)',
+              border: '1px solid rgba(48,209,88,0.18)',
+              borderRadius: 8,
+              padding: '5px 10px',
+            }}
+          >
+            <span style={{ fontSize: 12, color: 'rgba(80,220,110,0.95)' }}>Dispatched</span>
           </div>
         )}
 
-        {(runState === 'saving' || runState === 'triggering') && (
-          <div className="flex items-center gap-1.5 px-2">
-            <Loader2 size={12} className="animate-spin text-white/40" />
-            <span className="text-xs text-white/40">
-              {runState === 'saving' ? 'Saving…' : 'Dispatching…'}
+        {isBusy && (
+          <div className="flex items-center gap-1.5" style={{ padding: '0 4px' }}>
+            <Loader2 size={12} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+              {runState === 'saving' ? 'Saving…' : 'Running…'}
             </span>
           </div>
         )}
 
+        {/* History */}
         <button
           onClick={onToggleHistory}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-            showHistory
-              ? 'border-blue-500/40 bg-blue-500/15 text-blue-300'
-              : 'border-white/8 bg-white/5 text-white/60 hover:border-white/15 hover:bg-white/10 hover:text-white/80'
-          }`}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 11px',
+            borderRadius: 8,
+            border: showHistory ? '1px solid rgba(10,132,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
+            background: showHistory ? 'rgba(10,132,255,0.12)' : 'rgba(255,255,255,0.04)',
+            color: showHistory ? 'rgba(10,132,255,0.95)' : 'rgba(255,255,255,0.5)',
+            fontSize: 13,
+            fontWeight: 450,
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
         >
-          <History size={12} />
+          <Clock size={13} />
           History
         </button>
 
+        {/* Save */}
         <button
           onClick={handleSaveOnly}
           disabled={isBusy}
-          className="flex items-center gap-1.5 rounded-lg border border-white/8 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/60 transition hover:border-white/15 hover:bg-white/10 hover:text-white/80 disabled:cursor-not-allowed disabled:opacity-40"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 11px',
+            borderRadius: 8,
+            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'rgba(255,255,255,0.04)',
+            color: 'rgba(255,255,255,0.55)',
+            fontSize: 13,
+            fontWeight: 450,
+            cursor: isBusy ? 'not-allowed' : 'pointer',
+            opacity: isBusy ? 0.4 : 1,
+            transition: 'all 0.15s',
+          }}
         >
-          <Save size={12} />
+          <Save size={13} />
           Save
         </button>
 
+        {/* Save & Run */}
         <button
           onClick={handleSaveAndRun}
           disabled={isBusy}
-          className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-blue-900/30 transition hover:from-blue-500 hover:to-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 14px',
+            borderRadius: 8,
+            border: 'none',
+            background: isBusy ? 'rgba(10,132,255,0.5)' : '#0A84FF',
+            color: '#fff',
+            fontSize: 13,
+            fontWeight: 550,
+            cursor: isBusy ? 'not-allowed' : 'pointer',
+            transition: 'all 0.15s',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+          }}
         >
-          {isBusy ? (
-            <Loader2 size={12} className="animate-spin" />
-          ) : (
-            <Play size={12} />
-          )}
+          {isBusy ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
           Save & Run
         </button>
       </div>

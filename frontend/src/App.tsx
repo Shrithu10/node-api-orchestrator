@@ -30,7 +30,7 @@ export default function App() {
   }, [stopPolling])
 
   const handleToggleHistory = useCallback(() => {
-    setShowHistory((prev) => !prev)
+    setShowHistory((p) => !p)
     setShowRunPanel(false)
   }, [])
 
@@ -43,17 +43,10 @@ export default function App() {
     [startPolling],
   )
 
-  // Priority: run panel > history panel > node config panel
-  const rightPanel = showRunPanel
-    ? 'run'
-    : showHistory
-      ? 'history'
-      : selectedNodeId
-        ? 'config'
-        : 'config'
+  const rightPanel = showRunPanel ? 'run' : showHistory ? 'history' : 'config'
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#0d0e17]">
+    <div className="flex h-screen w-screen flex-col overflow-hidden" style={{ background: '#080809' }}>
       <TopBar
         onRunDispatched={handleRunDispatched}
         onToggleHistory={handleToggleHistory}

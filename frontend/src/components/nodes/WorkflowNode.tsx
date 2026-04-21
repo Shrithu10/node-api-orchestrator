@@ -10,49 +10,115 @@ function WorkflowNodeComponent({ data, selected }: NodeProps<WorkflowNodeType>) 
   return (
     <div
       style={{
-        borderColor: selected ? color : 'rgba(255,255,255,0.08)',
-        boxShadow: selected ? `0 0 0 2px ${color}40, 0 4px 24px rgba(0,0,0,0.4)` : '0 2px 12px rgba(0,0,0,0.3)',
+        minWidth: 172,
+        maxWidth: 220,
+        borderRadius: 12,
+        background: '#1c1c1e',
+        border: selected
+          ? `1px solid ${color}55`
+          : '1px solid rgba(255,255,255,0.09)',
+        boxShadow: selected
+          ? `0 0 0 3px ${color}18, 0 8px 32px rgba(0,0,0,0.5)`
+          : '0 2px 16px rgba(0,0,0,0.45)',
+        transition: 'border 0.15s, box-shadow 0.15s',
+        overflow: 'hidden',
+        cursor: 'default',
       }}
-      className="min-w-[180px] max-w-[220px] rounded-xl border-2 bg-[#1a1d27] transition-all duration-150 cursor-default"
     >
       <Handle
         type="target"
         position={Position.Top}
         style={{
           background: color,
-          border: '2px solid #1a1d27',
-          width: 10,
-          height: 10,
+          border: '2px solid #1c1c1e',
+          width: 9,
+          height: 9,
+          top: -5,
         }}
       />
 
+      {/* Color strip + type label */}
       <div
-        style={{ background: `${color}20`, borderBottom: `1px solid ${color}30` }}
-        className="flex items-center gap-2 rounded-t-xl px-3 py-2"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 7,
+          padding: '8px 11px 7px',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
       >
         <span
-          style={{ background: color }}
-          className="inline-block h-2 w-2 flex-shrink-0 rounded-full"
+          style={{
+            display: 'inline-block',
+            width: 6,
+            height: 6,
+            borderRadius: '50%',
+            background: color,
+            flexShrink: 0,
+            opacity: 0.9,
+          }}
         />
         <span
-          style={{ color }}
-          className="truncate text-[10px] font-semibold uppercase tracking-widest"
+          style={{
+            fontSize: 10,
+            fontWeight: 600,
+            letterSpacing: '0.06em',
+            textTransform: 'uppercase',
+            color: color,
+            opacity: 0.85,
+          }}
         >
           {typeLabel}
         </span>
       </div>
 
-      <div className="px-3 py-2.5">
-        <p className="truncate text-sm font-medium text-white/90">{data.label}</p>
+      {/* Label + metadata */}
+      <div style={{ padding: '8px 11px 9px' }}>
+        <p
+          style={{
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'rgba(255,255,255,0.88)',
+            margin: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {data.label}
+        </p>
+
         {data.config.url && (
-          <p className="mt-0.5 truncate text-[11px] text-white/40">{data.config.url}</p>
+          <p
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.32)',
+              margin: '3px 0 0',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {data.config.url as string}
+          </p>
         )}
+
         {data.config.method && (
           <span
-            style={{ color, borderColor: `${color}40`, background: `${color}15` }}
-            className="mt-1 inline-block rounded border px-1.5 py-0.5 text-[10px] font-bold"
+            style={{
+              display: 'inline-block',
+              marginTop: 5,
+              padding: '2px 6px',
+              borderRadius: 5,
+              background: `${color}18`,
+              border: `1px solid ${color}30`,
+              color: color,
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: '0.03em',
+            }}
           >
-            {data.config.method}
+            {data.config.method as string}
           </span>
         )}
       </div>
@@ -62,9 +128,10 @@ function WorkflowNodeComponent({ data, selected }: NodeProps<WorkflowNodeType>) 
         position={Position.Bottom}
         style={{
           background: color,
-          border: '2px solid #1a1d27',
-          width: 10,
-          height: 10,
+          border: '2px solid #1c1c1e',
+          width: 9,
+          height: 9,
+          bottom: -5,
         }}
       />
     </div>

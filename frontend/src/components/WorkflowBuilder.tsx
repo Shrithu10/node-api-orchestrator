@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import {
   ReactFlow,
   Background,
@@ -64,11 +64,8 @@ function Canvas() {
   }, [setSelectedNodeId])
 
   const miniMapNodeColor = useCallback((node: WorkflowNode) => {
-    return NODE_COLOR[node.data.nodeType] ?? '#6b7280'
+    return NODE_COLOR[node.data.nodeType] ?? '#3f3f3f'
   }, [])
-
-  const nodesDef = NODE_TYPE_DEFINITIONS
-  const emptyCanvas = nodes.length === 0
 
   return (
     <div ref={wrapperRef} className="relative h-full w-full" onDragOver={onDragOver} onDrop={onDrop}>
@@ -82,63 +79,66 @@ function Canvas() {
         onPaneClick={onPaneClick}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
-        minZoom={0.2}
-        maxZoom={2}
+        fitViewOptions={{ padding: 0.35 }}
+        minZoom={0.15}
+        maxZoom={2.5}
         deleteKeyCode="Delete"
         proOptions={{ hideAttribution: true }}
-        style={{ background: '#0d0e17' }}
+        style={{ background: '#080809' }}
+        defaultEdgeOptions={{
+          style: { strokeWidth: 1.5 },
+        }}
       >
         <Background
           variant={BackgroundVariant.Dots}
-          gap={28}
+          gap={24}
           size={1}
-          color="rgba(255,255,255,0.06)"
+          color="rgba(255,255,255,0.045)"
         />
         <Controls
-          style={{
-            background: '#1a1d27',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '10px',
-          }}
+          position="bottom-right"
+          style={{ bottom: 16, right: 16 }}
         />
         <MiniMap
           nodeColor={miniMapNodeColor}
+          position="bottom-left"
           style={{
-            background: '#12131c',
-            border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: '10px',
+            background: 'rgba(18,18,20,0.92)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 10,
+            backdropFilter: 'blur(12px)',
           }}
-          maskColor="rgba(13,14,23,0.7)"
+          maskColor="rgba(8,8,9,0.75)"
         />
       </ReactFlow>
 
-      {emptyCanvas && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="space-y-4 text-center">
-            <div className="mx-auto flex items-center justify-center gap-2">
-              {nodesDef.slice(0, 3).map((def) => (
+      {nodes.length === 0 && (
+        <div
+          className="pointer-events-none absolute inset-0 flex items-center justify-center"
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 20 }}>
+              {NODE_TYPE_DEFINITIONS.slice(0, 3).map((def) => (
                 <div
                   key={def.type}
-                  style={{ borderColor: `${def.color}30`, background: `${def.color}10` }}
-                  className="rounded-xl border px-3 py-2"
+                  style={{
+                    padding: '7px 12px',
+                    borderRadius: 10,
+                    border: `1px solid ${def.color}25`,
+                    background: `${def.color}0c`,
+                  }}
                 >
-                  <div
-                    style={{ background: def.color }}
-                    className="mx-auto mb-1 h-1.5 w-1.5 rounded-full"
-                  />
-                  <p style={{ color: def.color }} className="text-[10px] font-semibold">
-                    {def.label}
-                  </p>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: def.color, margin: '0 auto 5px', opacity: 0.8 }} />
+                  <p style={{ fontSize: 11, fontWeight: 600, color: def.color, margin: 0, opacity: 0.8 }}>{def.label}</p>
                 </div>
               ))}
             </div>
-            <div>
-              <p className="text-sm font-medium text-white/30">Drag nodes from the sidebar</p>
-              <p className="mt-1 text-xs text-white/15">
-                Connect them by dragging from output → input handles
-              </p>
-            </div>
+            <p style={{ fontSize: 14, fontWeight: 450, color: 'rgba(255,255,255,0.28)', margin: '0 0 6px' }}>
+              Drag nodes from the sidebar to get started
+            </p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.14)', margin: 0 }}>
+              Connect output → input handles to build your pipeline
+            </p>
           </div>
         </div>
       )}

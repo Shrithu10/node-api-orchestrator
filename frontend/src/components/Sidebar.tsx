@@ -27,17 +27,52 @@ function SidebarItem({ def }: { def: NodeTypeDefinition }) {
     <div
       draggable
       onDragStart={onDragStart}
-      className="group flex cursor-grab items-start gap-3 rounded-lg border border-white/5 bg-white/[0.03] p-3 transition-all duration-100 hover:border-white/10 hover:bg-white/[0.07] active:cursor-grabbing"
+      className="group"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 11,
+        padding: '9px 12px',
+        borderRadius: 10,
+        border: '1px solid transparent',
+        cursor: 'grab',
+        transition: 'all 0.15s',
+        userSelect: 'none',
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLElement
+        el.style.background = 'rgba(255,255,255,0.04)'
+        el.style.border = '1px solid rgba(255,255,255,0.07)'
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLElement
+        el.style.background = 'transparent'
+        el.style.border = '1px solid transparent'
+      }}
     >
       <div
-        style={{ background: `${def.color}20`, color: def.color }}
-        className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg"
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: `${def.color}18`,
+          border: `1px solid ${def.color}28`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: def.color,
+          flexShrink: 0,
+        }}
       >
-        <Icon size={15} />
+        <Icon size={14} />
       </div>
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-white/90">{def.label}</p>
-        <p className="mt-0.5 text-[11px] leading-tight text-white/40">{def.description}</p>
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.82)', margin: 0, lineHeight: 1.3 }}>
+          {def.label}
+        </p>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0', lineHeight: 1.4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {def.description}
+        </p>
       </div>
     </div>
   )
@@ -45,25 +80,35 @@ function SidebarItem({ def }: { def: NodeTypeDefinition }) {
 
 export function Sidebar() {
   return (
-    <aside className="flex h-full w-64 flex-shrink-0 flex-col border-r border-white/5 bg-[#12131c]">
-      <div className="border-b border-white/5 px-4 py-3.5">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-white/30">
-          Node Palette
+    <aside
+      style={{
+        width: 236,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        background: 'rgba(12,12,14,0.97)',
+        borderRight: '1px solid rgba(255,255,255,0.06)',
+      }}
+    >
+      {/* Header */}
+      <div style={{ padding: '16px 16px 10px' }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.07em', textTransform: 'uppercase', margin: 0 }}>
+          Nodes
         </p>
-        <p className="mt-0.5 text-xs text-white/20">Drag nodes onto the canvas</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3">
-        <div className="flex flex-col gap-2">
-          {NODE_TYPE_DEFINITIONS.map((def) => (
-            <SidebarItem key={def.type} def={def} />
-          ))}
-        </div>
+      {/* Node list */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '2px 8px 8px' }}>
+        {NODE_TYPE_DEFINITIONS.map((def) => (
+          <SidebarItem key={def.type} def={def} />
+        ))}
       </div>
 
-      <div className="border-t border-white/5 px-4 py-3">
-        <p className="text-[10px] text-white/20">
-          Connect nodes by dragging from a source handle (bottom) to a target handle (top).
+      {/* Footer */}
+      <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', lineHeight: 1.5, margin: 0 }}>
+          Drag onto canvas, then connect handles to build a pipeline.
         </p>
       </div>
     </aside>
