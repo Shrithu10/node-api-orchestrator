@@ -1,82 +1,68 @@
 @import "tailwindcss";
 
 *, *::before, *::after { box-sizing: border-box; }
-
-html, body, #root {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
+html, body, #root { height: 100%; width: 100%; margin: 0; padding: 0; overflow: hidden; }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #080809;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ── React Flow ── */
-.react-flow__controls {
-  box-shadow: none !important;
-  gap: 2px !important;
-}
+/* ── React Flow edges ── */
+[data-theme="dark"] .react-flow__edge-path { stroke: rgba(255,255,255,0.15) !important; stroke-width: 2px !important; }
+[data-theme="dark"] .react-flow__edge.selected .react-flow__edge-path,
+[data-theme="dark"] .react-flow__edge:hover .react-flow__edge-path { stroke: rgba(255,255,255,0.35) !important; }
+[data-theme="dark"] .react-flow__connection-path { stroke: rgba(45,127,249,0.7) !important; stroke-width: 2px !important; }
 
-.react-flow__controls button {
-  background: rgba(28,28,30,0.9) !important;
-  border: 1px solid rgba(255,255,255,0.07) !important;
-  border-radius: 8px !important;
+[data-theme="light"] .react-flow__edge-path { stroke: rgba(0,0,0,0.18) !important; stroke-width: 2px !important; }
+[data-theme="light"] .react-flow__edge.selected .react-flow__edge-path,
+[data-theme="light"] .react-flow__edge:hover .react-flow__edge-path { stroke: rgba(0,0,0,0.40) !important; }
+[data-theme="light"] .react-flow__connection-path { stroke: rgba(0,113,227,0.7) !important; stroke-width: 2px !important; }
+
+/* ── Controls ── */
+.react-flow__controls { box-shadow: none !important; gap: 4px !important; }
+
+[data-theme="dark"] .react-flow__controls button {
+  background: rgba(24,24,31,0.95) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 10px !important;
   color: rgba(255,255,255,0.45) !important;
-  width: 28px !important;
-  height: 28px !important;
-  backdrop-filter: blur(12px);
+  width: 30px !important; height: 30px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+}
+[data-theme="dark"] .react-flow__controls button:hover {
+  background: rgba(45,45,58,0.98) !important;
+  color: rgba(255,255,255,0.80) !important;
 }
 
-.react-flow__controls button:hover {
-  background: rgba(44,44,46,0.95) !important;
-  color: rgba(255,255,255,0.75) !important;
+[data-theme="light"] .react-flow__controls button {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid rgba(0,0,0,0.10) !important;
+  border-radius: 10px !important;
+  color: rgba(0,0,0,0.45) !important;
+  width: 30px !important; height: 30px !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.10) !important;
 }
-
-.react-flow__edge-path {
-  stroke: rgba(255,255,255,0.12) !important;
-  stroke-width: 1.5px !important;
-}
-
-.react-flow__edge.selected .react-flow__edge-path,
-.react-flow__edge:hover .react-flow__edge-path {
-  stroke: rgba(255,255,255,0.30) !important;
-}
-
-.react-flow__connection-path {
-  stroke: rgba(10,132,255,0.6) !important;
-  stroke-width: 1.5px !important;
-}
-
-.react-flow__handle {
-  transition: transform 0.15s ease, opacity 0.15s ease;
+[data-theme="light"] .react-flow__controls button:hover {
+  background: #fff !important; color: rgba(0,0,0,0.80) !important;
 }
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 3px; height: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.07);
-  border-radius: 999px;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.10); border-radius: 99px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 99px; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
 
-/* ── Select options ── */
-select option {
-  background: #1c1c1e;
-  color: rgba(255,255,255,0.88);
-}
+/* ── Select ── */
+[data-theme="dark"] select option { background: #18181f; color: rgba(255,255,255,0.9); }
+[data-theme="light"] select option { background: #fff; color: #0f0f12; }
 
 /* ── Animations ── */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.animate-in { animation: fadeIn 0.18s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.animate-in { animation: fadeUp 0.2s cubic-bezier(0.22,1,0.36,1) both; }
+.animate-spin { animation: spin 0.9s linear infinite; }

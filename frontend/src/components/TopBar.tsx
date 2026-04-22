@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Play, Save, Loader2, Clock, X } from 'lucide-react'
+import { Play, Save, Loader2, Clock, Sun, Moon, X, CheckCircle } from 'lucide-react'
 import { useWorkflowStore } from '../store/workflowStore'
 import { createWorkflow, triggerRun } from '../api/client'
+import { useTheme } from '../hooks/useTheme'
 
 type RunState = 'idle' | 'saving' | 'triggering' | 'dispatched' | 'error'
 
@@ -17,11 +18,14 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
   const setSavedWorkflowId = useWorkflowStore((s) => s.setSavedWorkflowId)
   const toBackendPayload = useWorkflowStore((s) => s.toBackendPayload)
   const nodes = useWorkflowStore((s) => s.nodes)
+  const toggleTheme = useWorkflowStore((s) => s.toggleTheme)
+  const t = useTheme()
+  const isLight = t.theme === 'light'
 
   const [runState, setRunState] = useState<RunState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
 
-  const handleSaveAndRun = async () => {
+  const run = async (withRun: boolean) => {
     if (nodes.length === 0) {
       setErrorMsg('Add at least one node first')
       setRunState('error')
@@ -33,26 +37,12 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
     try {
       const workflow = await createWorkflow(toBackendPayload())
       setSavedWorkflowId(workflow.id)
+      if (!withRun) { setRunState('dispatched'); setTimeout(() => setRunState('idle'), 1800); return }
       setRunState('triggering')
-      const run = await triggerRun(workflow.id)
+      const r = await triggerRun(workflow.id)
       setRunState('dispatched')
-      onRunDispatched(run.run_id)
+      onRunDispatched(r.run_id)
       setTimeout(() => setRunState('idle'), 2000)
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Unknown error')
-      setRunState('error')
-      setTimeout(() => setRunState('idle'), 4000)
-    }
-  }
-
-  const handleSaveOnly = async () => {
-    if (nodes.length === 0) return
-    setRunState('saving')
-    try {
-      const workflow = await createWorkflow(toBackendPayload())
-      setSavedWorkflowId(workflow.id)
-      setRunState('dispatched')
-      setTimeout(() => setRunState('idle'), 1500)
     } catch (err) {
       setErrorMsg(err instanceof Error ? err.message : 'Unknown error')
       setRunState('error')
@@ -63,167 +53,161 @@ export function TopBar({ onRunDispatched, onToggleHistory, showHistory }: TopBar
   const isBusy = runState === 'saving' || runState === 'triggering'
 
   return (
-    <header
-      className="flex h-[52px] flex-shrink-0 items-center px-4 gap-3"
-      style={{
-        background: 'rgba(12,12,14,0.95)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-        backdropFilter: 'blur(20px)',
-      }}
-    >
+    <header style={{
+      display: 'flex', height: 56, flexShrink: 0,
+      alignItems: 'center', padding: '0 20px', gap: 12,
+      background: t.topbarBg,
+      borderBottom: `1px solid ${t.topbarBorder}`,
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      transition: 'background 0.3s, border-color 0.3s',
+      position: 'relative', zIndex: 20,
+      boxShadow: isLight ? '0 1px 16px rgba(0,0,0,0.07)' : '0 1px 0 rgba(255,255,255,0.04)',
+    }}>
+
       {/* Logo */}
-      <div className="flex items-center gap-2.5 flex-shrink-0">
-        <div
-          className="flex h-[26px] w-[26px] items-center justify-center rounded-[7px]"
-          style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #7c3aed 100%)' }}
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <circle cx="2.5" cy="6" r="1.8" fill="white" fillOpacity="0.95" />
-            <circle cx="9.5" cy="2.5" r="1.8" fill="white" fillOpacity="0.95" />
-            <circle cx="9.5" cy="9.5" r="1.8" fill="white" fillOpacity="0.95" />
-            <line x1="4.2" y1="5.1" x2="7.8" y2="3.4" stroke="white" strokeWidth="0.9" strokeOpacity="0.7" />
-            <line x1="4.2" y1="6.9" x2="7.8" y2="8.6" stroke="white" strokeWidth="0.9" strokeOpacity="0.7" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: 10,
+          background: 'linear-gradient(145deg, #6366f1, #8b5cf6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 14px rgba(139,92,246,0.45)',
+          flexShrink: 0,
+        }}>
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+            <circle cx="3" cy="7.5" r="2.2" fill="white" fillOpacity="0.95"/>
+            <circle cx="12" cy="3" r="2.2" fill="white" fillOpacity="0.95"/>
+            <circle cx="12" cy="12" r="2.2" fill="white" fillOpacity="0.95"/>
+            <line x1="5.1" y1="6.5" x2="9.9" y2="4" stroke="white" strokeWidth="1.1" strokeOpacity="0.6"/>
+            <line x1="5.1" y1="8.5" x2="9.9" y2="11" stroke="white" strokeWidth="1.1" strokeOpacity="0.6"/>
           </svg>
         </div>
-        <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em' }}>
-          ORCHESTRATOR
-        </span>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 500, color: t.textPrimary, margin: 0, letterSpacing: '-0.03em' }}>
+            Orchestrator
+          </p>
+          <p style={{ fontSize: 10, color: t.textMuted, margin: 0, letterSpacing: '0.02em', fontWeight: 500 }}>
+            API workflow engine
+          </p>
+        </div>
       </div>
 
-      <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.07)', flexShrink: 0 }} />
+      <div style={{ width: 1, height: 24, background: t.divider, margin: '0 2px', flexShrink: 0 }} />
 
-      {/* Workflow name */}
+      {/* Name */}
       <input
-        type="text"
-        value={workflowName}
+        type="text" value={workflowName}
         onChange={(e) => setWorkflowName(e.target.value)}
         placeholder="Untitled workflow"
         style={{
-          background: 'transparent',
-          border: 'none',
-          outline: 'none',
-          color: 'rgba(255,255,255,0.82)',
-          fontSize: 14,
-          fontWeight: 450,
-          width: 200,
-          padding: '4px 6px',
-          borderRadius: 6,
-          transition: 'background 0.15s',
+          background: 'transparent', border: 'none', outline: 'none',
+          color: t.textPrimary, fontSize: 14, fontWeight: 450,
+          width: 200, padding: '6px 10px', borderRadius: 9,
+          transition: 'background 0.15s', fontFamily: 'inherit',
+          letterSpacing: '-0.01em',
         }}
-        onFocus={(e) => { e.target.style.background = 'rgba(255,255,255,0.05)' }}
+        onFocus={(e) => { e.target.style.background = t.inputBg }}
         onBlur={(e) => { e.target.style.background = 'transparent' }}
       />
 
-      {/* Right side */}
-      <div className="ml-auto flex items-center gap-2">
-        {/* Status feedback */}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+
         {runState === 'error' && (
-          <div
-            className="flex items-center gap-2 animate-in"
-            style={{
-              background: 'rgba(255,59,48,0.12)',
-              border: '1px solid rgba(255,59,48,0.2)',
-              borderRadius: 8,
-              padding: '5px 10px',
-            }}
-          >
-            <span style={{ fontSize: 12, color: 'rgba(255,100,90,0.95)' }}>{errorMsg}</span>
-            <button onClick={() => setRunState('idle')} style={{ color: 'rgba(255,100,90,0.6)', lineHeight: 0 }}>
+          <div className="animate-in" style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: t.errorBg, border: `1px solid ${t.errorBorder}`,
+            borderRadius: 10, padding: '6px 12px',
+          }}>
+            <span style={{ fontSize: 12, color: t.errorColor, fontWeight: 500 }}>{errorMsg}</span>
+            <button onClick={() => setRunState('idle')} style={{ color: t.errorColor, background: 'none', border: 'none', cursor: 'pointer', lineHeight: 0, opacity: 0.6 }}>
               <X size={11} />
             </button>
           </div>
         )}
 
         {runState === 'dispatched' && (
-          <div
-            className="flex items-center gap-2 animate-in"
-            style={{
-              background: 'rgba(48,209,88,0.10)',
-              border: '1px solid rgba(48,209,88,0.18)',
-              borderRadius: 8,
-              padding: '5px 10px',
-            }}
-          >
-            <span style={{ fontSize: 12, color: 'rgba(80,220,110,0.95)' }}>Dispatched</span>
+          <div className="animate-in" style={{
+            display: 'flex', alignItems: 'center', gap: 7,
+            background: t.successBg, border: `1px solid ${t.successBorder}`,
+            borderRadius: 10, padding: '6px 12px',
+          }}>
+            <CheckCircle size={13} style={{ color: t.successColor }} />
+            <span style={{ fontSize: 12, color: t.successColor, fontWeight: 450 }}>Dispatched</span>
           </div>
         )}
 
         {isBusy && (
-          <div className="flex items-center gap-1.5" style={{ padding: '0 4px' }}>
-            <Loader2 size={12} className="animate-spin" style={{ color: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <Loader2 size={13} className="animate-spin" style={{ color: t.accent }} />
+            <span style={{ fontSize: 12, color: t.textTertiary }}>
               {runState === 'saving' ? 'Saving…' : 'Running…'}
             </span>
           </div>
         )}
 
-        {/* History */}
-        <button
-          onClick={onToggleHistory}
+        {/* Theme */}
+        <button onClick={toggleTheme}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 11px',
-            borderRadius: 8,
-            border: showHistory ? '1px solid rgba(10,132,255,0.3)' : '1px solid rgba(255,255,255,0.08)',
-            background: showHistory ? 'rgba(10,132,255,0.12)' : 'rgba(255,255,255,0.04)',
-            color: showHistory ? 'rgba(10,132,255,0.95)' : 'rgba(255,255,255,0.5)',
-            fontSize: 13,
-            fontWeight: 450,
-            cursor: 'pointer',
-            transition: 'all 0.15s',
+            width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderRadius: 10, border: `1px solid ${t.btnBorder}`,
+            background: t.btnBg, color: t.iconDefault,
+            cursor: 'pointer', transition: 'all 0.2s',
           }}
+          onMouseEnter={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = t.btnHoverBg; el.style.color = t.btnHoverColor }}
+          onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = t.btnBg; el.style.color = t.iconDefault }}
+        >
+          {isLight ? <Moon size={14} /> : <Sun size={14} />}
+        </button>
+
+        {/* History */}
+        <button onClick={onToggleHistory}
+          style={{
+            display: 'flex', alignItems: 'center', gap: 6,
+            height: 36, padding: '0 14px', borderRadius: 10,
+            border: `1px solid ${showHistory ? t.accent + '60' : t.btnBorder}`,
+            background: showHistory ? t.accent + '18' : t.btnBg,
+            color: showHistory ? t.accent : t.btnColor,
+            fontSize: 13, fontWeight: 450, cursor: 'pointer', transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => { if (!showHistory) { const el = e.currentTarget as HTMLElement; el.style.background = t.btnHoverBg; el.style.color = t.btnHoverColor } }}
+          onMouseLeave={(e) => { if (!showHistory) { const el = e.currentTarget as HTMLElement; el.style.background = t.btnBg; el.style.color = t.btnColor } }}
         >
           <Clock size={13} />
           History
         </button>
 
         {/* Save */}
-        <button
-          onClick={handleSaveOnly}
-          disabled={isBusy}
+        <button onClick={() => run(false)} disabled={isBusy}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 11px',
-            borderRadius: 8,
-            border: '1px solid rgba(255,255,255,0.08)',
-            background: 'rgba(255,255,255,0.04)',
-            color: 'rgba(255,255,255,0.55)',
-            fontSize: 13,
-            fontWeight: 450,
-            cursor: isBusy ? 'not-allowed' : 'pointer',
-            opacity: isBusy ? 0.4 : 1,
-            transition: 'all 0.15s',
+            display: 'flex', alignItems: 'center', gap: 6,
+            height: 36, padding: '0 14px', borderRadius: 10,
+            border: `1px solid ${t.btnBorder}`, background: t.btnBg,
+            color: t.btnColor, fontSize: 13, fontWeight: 450,
+            cursor: isBusy ? 'not-allowed' : 'pointer', opacity: isBusy ? 0.4 : 1, transition: 'all 0.2s',
           }}
+          onMouseEnter={(e) => { if (!isBusy) { const el = e.currentTarget as HTMLElement; el.style.background = t.btnHoverBg; el.style.color = t.btnHoverColor } }}
+          onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.background = t.btnBg; el.style.color = t.btnColor }}
         >
           <Save size={13} />
           Save
         </button>
 
         {/* Save & Run */}
-        <button
-          onClick={handleSaveAndRun}
-          disabled={isBusy}
+        <button onClick={() => run(true)} disabled={isBusy}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 14px',
-            borderRadius: 8,
+            display: 'flex', alignItems: 'center', gap: 7,
+            height: 36, padding: '0 18px', borderRadius: 10,
             border: 'none',
-            background: isBusy ? 'rgba(10,132,255,0.5)' : '#0A84FF',
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 550,
-            cursor: isBusy ? 'not-allowed' : 'pointer',
-            transition: 'all 0.15s',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            background: isBusy ? `${t.accent}70` : t.accentGradient,
+            color: '#fff', fontSize: 13, fontWeight: 500,
+            cursor: isBusy ? 'not-allowed' : 'pointer', transition: 'all 0.2s',
+            boxShadow: isBusy ? 'none' : `0 4px 16px ${t.accent}50`,
+            letterSpacing: '-0.01em',
           }}
+          onMouseEnter={(e) => { if (!isBusy) { const el = e.currentTarget as HTMLElement; el.style.filter = 'brightness(1.1)'; el.style.boxShadow = `0 6px 22px ${t.accent}65` } }}
+          onMouseLeave={(e) => { const el = e.currentTarget as HTMLElement; el.style.filter = 'none'; el.style.boxShadow = `0 4px 16px ${t.accent}50` }}
         >
-          {isBusy ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
+          {isBusy ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} fill="white" />}
           Save & Run
         </button>
       </div>

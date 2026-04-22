@@ -24,6 +24,7 @@ interface WorkflowStore {
   selectedNodeId: string | null
   workflowName: string
   savedWorkflowId: string | null
+  theme: 'light' | 'dark'
 
   onNodesChange: (changes: NodeChange<WorkflowNode>[]) => void
   onEdgesChange: (changes: EdgeChange[]) => void
@@ -36,6 +37,7 @@ interface WorkflowStore {
   setSelectedNodeId: (id: string | null) => void
   setWorkflowName: (name: string) => void
   setSavedWorkflowId: (id: string | null) => void
+  toggleTheme: () => void
 
   getSelectedNode: () => WorkflowNode | null
   toBackendPayload: () => WorkflowPayload
@@ -48,6 +50,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
     selectedNodeId: null,
     workflowName: 'Untitled Workflow',
     savedWorkflowId: null,
+    theme: 'dark',
 
     onNodesChange: (changes) => {
       set((s) => ({ nodes: applyNodeChanges(changes, s.nodes) }))
@@ -112,6 +115,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
     setSelectedNodeId: (id) => set({ selectedNodeId: id }),
     setWorkflowName: (name) => set({ workflowName: name }),
     setSavedWorkflowId: (id) => set({ savedWorkflowId: id }),
+    toggleTheme: () => set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
 
     getSelectedNode: () => {
       const { nodes, selectedNodeId } = get()

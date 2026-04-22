@@ -1,138 +1,110 @@
 import { memo } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
+import { Globe, Shuffle, Filter, Merge, Clock, Minus, type LucideIcon } from 'lucide-react'
 import { NODE_COLOR, NODE_LABEL } from '../../constants/nodeTypes'
 import type { WorkflowNode as WorkflowNodeType } from '../../store/workflowStore'
+import { useTheme } from '../../hooks/useTheme'
+import type { NodeType } from '../../types'
+
+const ICONS: Record<NodeType, LucideIcon> = {
+  http_request: Globe, transform: Shuffle, filter: Filter,
+  merge: Merge, delay: Clock, noop: Minus,
+}
 
 function WorkflowNodeComponent({ data, selected }: NodeProps<WorkflowNodeType>) {
   const color = NODE_COLOR[data.nodeType]
-  const typeLabel = NODE_LABEL[data.nodeType]
+  const t = useTheme()
+  const Icon = ICONS[data.nodeType]
+  const isLight = t.theme === 'light'
 
   return (
-    <div
-      style={{
-        minWidth: 172,
-        maxWidth: 220,
-        borderRadius: 12,
-        background: '#1c1c1e',
-        border: selected
-          ? `1px solid ${color}55`
-          : '1px solid rgba(255,255,255,0.09)',
-        boxShadow: selected
-          ? `0 0 0 3px ${color}18, 0 8px 32px rgba(0,0,0,0.5)`
-          : '0 2px 16px rgba(0,0,0,0.45)',
-        transition: 'border 0.15s, box-shadow 0.15s',
-        overflow: 'hidden',
-        cursor: 'default',
-      }}
-    >
+    <div style={{
+      minWidth: 192,
+      maxWidth: 248,
+      borderRadius: 16,
+      background: t.nodeBg,
+      border: `1.5px solid ${selected ? color : t.nodeBorder}`,
+      boxShadow: selected
+        ? t.nodeSelectedShadow(color)
+        : isLight
+          ? '0 2px 6px rgba(0,0,0,0.07), 0 10px 28px rgba(0,0,0,0.09)'
+          : '0 4px 16px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.4)',
+      transition: 'border-color 0.15s, box-shadow 0.15s',
+      overflow: 'hidden',
+      cursor: 'default',
+    }}>
       <Handle
-        type="target"
-        position={Position.Top}
-        style={{
-          background: color,
-          border: '2px solid #1c1c1e',
-          width: 9,
-          height: 9,
-          top: -5,
-        }}
+        type="target" position={Position.Top}
+        style={{ background: color, border: `3px solid ${t.handleBorder}`, width: 12, height: 12, top: -6 }}
       />
 
-      {/* Color strip + type label */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 7,
-          padding: '8px 11px 7px',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
-      >
-        <span
-          style={{
-            display: 'inline-block',
-            width: 6,
-            height: 6,
-            borderRadius: '50%',
-            background: color,
-            flexShrink: 0,
-            opacity: 0.9,
-          }}
-        />
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            color: color,
-            opacity: 0.85,
-          }}
-        >
-          {typeLabel}
-        </span>
+      {/* Gradient header */}
+      <div style={{
+        padding: '11px 14px 10px',
+        background: isLight
+          ? `linear-gradient(135deg, ${color}22 0%, ${color}0a 100%)`
+          : `linear-gradient(135deg, ${color}30 0%, ${color}10 100%)`,
+        borderBottom: `1px solid ${color}22`,
+        display: 'flex', alignItems: 'center', gap: 9,
+      }}>
+        <div style={{
+          width: 28, height: 28, borderRadius: 9,
+          background: isLight ? `${color}22` : `${color}28`,
+          border: `1px solid ${color}40`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          flexShrink: 0,
+          boxShadow: `0 2px 8px ${color}30`,
+        }}>
+          <Icon size={13} style={{ color }} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 11, fontWeight: 500, color, margin: 0, letterSpacing: '0.01em' }}>
+            {NODE_LABEL[data.nodeType]}
+          </p>
+        </div>
       </div>
 
-      {/* Label + metadata */}
-      <div style={{ padding: '8px 11px 9px' }}>
-        <p
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: 'rgba(255,255,255,0.88)',
-            margin: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
+      {/* Body */}
+      <div style={{ padding: '10px 14px 13px' }}>
+        <p style={{
+          fontSize: 14, fontWeight: 450, color: t.textPrimary,
+          margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          letterSpacing: '-0.01em',
+        }}>
           {data.label}
         </p>
 
         {data.config.url && (
-          <p
-            style={{
-              fontSize: 11,
-              color: 'rgba(255,255,255,0.32)',
-              margin: '3px 0 0',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <p style={{
+            fontSize: 11, color: t.textTertiary,
+            margin: '5px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            fontFamily: 'ui-monospace, monospace',
+          }}>
             {data.config.url as string}
           </p>
         )}
 
         {data.config.method && (
-          <span
-            style={{
-              display: 'inline-block',
-              marginTop: 5,
-              padding: '2px 6px',
-              borderRadius: 5,
-              background: `${color}18`,
-              border: `1px solid ${color}30`,
-              color: color,
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.03em',
-            }}
-          >
+          <span style={{
+            display: 'inline-block', marginTop: 7,
+            padding: '3px 8px', borderRadius: 7,
+            background: `${color}20`, border: `1px solid ${color}38`,
+            color, fontSize: 10, fontWeight: 500, letterSpacing: '0.06em',
+          }}>
             {data.config.method as string}
           </span>
+        )}
+
+        {data.config.seconds != null && (
+          <p style={{ fontSize: 12, color: t.textTertiary, margin: '6px 0 0', fontWeight: 500 }}>
+            ⏱ {String(data.config.seconds)}s
+          </p>
         )}
       </div>
 
       <Handle
-        type="source"
-        position={Position.Bottom}
-        style={{
-          background: color,
-          border: '2px solid #1c1c1e',
-          width: 9,
-          height: 9,
-          bottom: -5,
-        }}
+        type="source" position={Position.Bottom}
+        style={{ background: color, border: `3px solid ${t.handleBorder}`, width: 12, height: 12, bottom: -6 }}
       />
     </div>
   )
